@@ -1,0 +1,59 @@
+name: gearlever-tsugu
+base: core24
+version: '0.5.0'
+summary: XMPP
+description: |
+  Dino is an XMPP messaging app for Linux using GTK and Vala. It supports calls, encryption, file transfers, group chats and more.
+
+grade: stable
+confinement: strict
+
+lint:
+  ignore:
+    - classic
+    - library
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  gearlever-tsugu:
+    command: usr/bin/gearlever
+    extensions: [gnome]
+    environment:
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libproxy:$SNAP/usr/local/lib/gearlever/:$LD_LIBRARY_PATH
+      HOME: "$SNAP_USER_DATA"
+    plugs:
+      - home
+      - x11
+      - wayland
+      - unity7
+      - desktop
+      - desktop-legacy
+
+parts:
+  gearlever-tsugu:
+    source: https://github.com/mijorus/gearlever.git
+    source-type: git
+    plugin: meson
+    meson-parameters:
+      - "--buildtype=release"
+      - "-Dprefix=/usr"
+      - "-Dlocaledir=/usr/share/locale"
+
+    build-packages:
+      - python3
+      - pkg-config
+      - libgtk-4-dev
+
+    stage-packages:
+      - python3
+      - python3-xdg
+      - libadwaita-1-dev
+      - libproxy1v5
+    override-build: |
+      set -e
+      craftctl default
+      # Copy the appimage helper script
+      install -Dm755 "$CRAFT_PART_SRC/build-aux/get_appimage_offset.sh" "$CRAFT_PART_INSTALL/usr/local/lib/gearlever/get_appimage_offset"
